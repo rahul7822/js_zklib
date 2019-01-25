@@ -22,6 +22,26 @@ const uidLength = 9;
  * @returns {Attendance} Returns an Attendance
  */
 module.exports.parse = attdata => ({
+  id: (attdata.readUInt16LE(2)),
+  uid: parseInt(attdata.slice(4,8).toString("ascii").split('\0').shift()) || 0,
+  state: attdata[28],
+  timestamp: timeParser.decode(attdata.readUInt32LE(14)).toString(),//30,14,22
+  verificationType: attdata[28],
+  inOutStatus: attdata[35], //37
+});
+
+/*
+my custom parser which till now giving uid,inOutStatus and timestamp
+*/
+module.exports.myParse = attdata => ({
+  uid: attdata.readUInt16LE(2),
+  timestamp: timeParser.decode(attdata.readUInt32LE(6)).toString(),
+  inOutStatus: attdata.readUInt8(11),
+});
+
+
+/*
+module.exports.parse = attdata => ({
   id: (attdata[3] << 8) + attdata[2],
   uid: parseInt(attdata.slice(uidIndex, uidIndex + uidLength).toString('ascii')),
   state: attdata[28],
@@ -29,3 +49,7 @@ module.exports.parse = attdata => ({
   verificationType: attdata[28],
   inOutStatus: attdata[33],
 });
+*/
+
+
+

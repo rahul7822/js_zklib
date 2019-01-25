@@ -144,7 +144,14 @@ class ZkUser {
 
           if (reply && reply.length) {
             // total_bytes = getSizeUser(reply);
-            total_bytes = reply.readUInt32LE(8);
+            console.log("--------------------------------------------------------");
+            console.log(reply.length);
+            console.log(reply.readUInt8(7).toString(16));
+            console.log(reply.toString('utf8'));
+            console.log("--------------------------------------------------------");
+            total_bytes = reply.readUInt16LE(6);
+            console.log(reply.readUInt8(7).toString(16));
+
 
             if (total_bytes <= 0) {
               internalCallback(new Error('no data'));

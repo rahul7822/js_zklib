@@ -2,8 +2,9 @@ const attParserLegacy = require('./att_parser_legacy');
 const attParserV660 = require('./att_parser_v6.60');
 const {Commands, States, ConnectionTypes} = require('./constants');
 const {createHeader, removeTcpHeader} = require('./utils');
+const timeParser = require('./timestamp_parser'); 
 
-module.exports = class {
+/*
   decodeAttendanceData(attdata) {
     switch (this.attendanceParser) {
       case attParserV660.name:
@@ -11,10 +12,15 @@ module.exports = class {
 
       case attParserLegacy.name:
       default:
-        return attParserLegacy.parse(attdata);
+        return attParserLegacy.parse(attdata);  
     }
   }
+*/
+module.exports = class {
 
+  decodeAttendanceData(attdata) {
+    return attParserV660.myParse(attdata);
+  }
   /**
    *
    * @param {(error: Error, data) => void} [cb]
@@ -43,7 +49,6 @@ module.exports = class {
      * @param {Buffer} reply
      */
     const handleOnData = reply => {
-      // console.log(reply.toString('hex'));
 
       switch (state) {
         case States.FIRST_PACKET:
@@ -53,7 +58,10 @@ module.exports = class {
 
           if (reply && reply.length) {
             const cmd = reply.readUInt16LE(0);
-
+/*    
+            console.log("cmd :");
+            console.log(cmd);
+*/
             if (cmd == Commands.ACK_ERROR) {
               internalCallback(new Error('ack error'));
               return;
@@ -61,7 +69,10 @@ module.exports = class {
 
             total_bytes = reply.readUInt32LE(8) - 4;
             total_bytes += 2;
-
+/*
+            console.log("total_bytes :");
+            console.log(total_bytes);
+*/
             if (total_bytes <= 0) {
               internalCallback(new Error('zero'));
               return;
@@ -88,18 +99,43 @@ module.exports = class {
           reply = removeHeadersInMiddle(reply);
 
           attendancesBuffer = Buffer.concat([attendancesBuffer, reply]);
+          //let tmpattbuf = attendancesBuffer;
 
           // TODO: if sizes are not the same we should throw an error. rigth know if they not match it simple hangs
 
           if (attendancesBuffer.length === total_bytes) {
             const atts = [];
 
-            for (let i = 0; i < attendancesBuffer.length - 2; i += ATTDATA_SIZE) {
+           /* for (let i = 0; i < attendancesBuffer.length-2; i += ATTDATA_SIZE) {//attendancesBuffer.length - 2 //attendancesBuffer.length - 20
               const att = this.decodeAttendanceData(attendancesBuffer.slice(i, i + ATTDATA_SIZE));
               atts.push(att);
-            }
-
+            }*/
+            
+            for (let i = 0; i < attendancesBuffer.length-2; i += 16) {
+              const att = this.decodeAttendanceData(attendancesBuffer.slice(i, i + 16));
+              atts.push(att);
+            } 
+/*
+            var count=0;
+            for (let k = 0; k < 16*Math.floor(tmpattbuf.length/16); k += 16) {
+            var timestamp6  = timeParser.decode(tmpattbuf.readUInt32LE(6+k)).toString();    
+            var inOut11 =  tmpattbuf.readUInt8(k+11);
+            var uid2 = tmpattbuf.readUInt16LE(k+2);
+            var id = parseInt(tmpattbuf.slice(k+4,k+8).toString("ascii").split('\0').shift());
+           
+            //console.log(uid);
+            //console.log(tmpattbuf.readUInt16LE(k) +"   "+tmpattbuf.readUInt16LE(k+1) +"   "+tmpattbuf.readUInt16LE(k+2) +"   "+tmpattbuf.readUInt16LE(k+3) +"   "+tmpattbuf.readUInt16LE(k+4) +"   "+tmpattbuf.readUInt16LE(k+5) +"   "+tmpattbuf.readUInt16LE(k+6) +"   "+tmpattbuf.readUInt16LE(k+7) +"   "+tmpattbuf.readUInt16LE(k+8) +"   "+tmpattbuf.readUInt16LE(k+9) +"   "+tmpattbuf.readUInt16LE(k+10) +"   "+tmpattbuf.readUInt16LE(k+11) +"   "+tmpattbuf.readUInt16LE(k+12) +"   "+tmpattbuf.readUInt16LE(k+13) +"   "+tmpattbuf.readUInt16LE(k+14) +"   "+tmpattbuf.readUInt16LE(k+15));
+            //console.log(tmpattbuf.readUInt32LE(k) +"   "+tmpattbuf.readUInt32LE(k+1) +"   "+tmpattbuf.readUInt32LE(k+2) +"   "+tmpattbuf.readUInt32LE(k+3) +"   "+tmpattbuf.readUInt32LE(k+4) +"   "+tmpattbuf.readUInt32LE(k+5) +"   "+tmpattbuf.readUInt32LE(k+6) +"   "+tmpattbuf.readUInt32LE(k+7) +"   "+tmpattbuf.readUInt32LE(k+8) +"   "+tmpattbuf.readUInt32LE(k+9) +"   "+tmpattbuf.readUInt32LE(k+10) +"   "+tmpattbuf.readUInt32LE(k+11) +"   "+tmpattbuf.readUInt32LE(k+12) +"   "+tmpattbuf.readUInt32LE(k+13) +"   "+tmpattbuf.readUInt32LE(k+14) +"   "+tmpattbuf.readUInt32LE(k+15));
+            //console.log(tmpattbuf[k] +"   "+tmpattbuf[k+1] +"   "+tmpattbuf[k+2] +"   "+tmpattbuf[k+3] +"   "+tmpattbuf[k+4] +"   "+tmpattbuf[k+5] +"   "+tmpattbuf[k+6] +"   "+tmpattbuf[k+7] +"   "+tmpattbuf[k+8] +"   "+tmpattbuf[k+9] +"   "+tmpattbuf[k+10] +"   "+tmpattbuf[k+11] +"   "+tmpattbuf[k+12] +"   "+tmpattbuf[k+13] +"   "+tmpattbuf[k+14] +"   "+tmpattbuf[k+15]);
+            
+            console.log(timestamp6 + "   " + inOut11 + "   " + uid2 );
+            count+=1;
+            } 
+            console.log("total records :"+ count);
+*/
             internalCallback(null, atts);
+            //const tmp = [];
+            //internalCallback(null, tmp);
             return;
           }
 

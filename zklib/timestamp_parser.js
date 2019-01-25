@@ -1,6 +1,6 @@
 /**
  *
- * @param {number} time
+ * @param {number} time 
  */
 exports.decode = time => {
   const second = time % 60;

@@ -1,5 +1,5 @@
 const dgram = require('dgram');
-
+ 
 const timeParser = require('./timestamp_parser');
 const {Commands} = require('./constants');
 const {checkValid} = require('./utils');
@@ -11,8 +11,13 @@ module.exports = class {
    */
   getTime(cb) {
     this.executeCmd(Commands.GET_TIME, '', (err, ret) => {
-      if (err) return cb(err);
+      if (err) 
+        return cb(err);
 
+      console.log("-----------time-----------")
+      console.log(ret.readUInt32LE(8));
+      console.log(timeParser.decode(ret.readUInt32LE(1)).toString());
+      console.log("-----------time-----------")
       return cb(null, timeParser.decode(ret.readUInt32LE(8)));
     });
   }
