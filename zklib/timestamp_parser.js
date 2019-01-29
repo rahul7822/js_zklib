@@ -23,7 +23,7 @@ exports.decode = time => {
 
   const year = time + 2000;
   
-  var date = Date(year, month, day, hour, minute, second,milliseconds)
+  var date = new Date(year, month, day, hour, minute, second,milliseconds)
 
   return date.getTime();//return time in milliseconds
   //return new Date(year, month, day, hour, minute, second,milliseconds).getTime();
