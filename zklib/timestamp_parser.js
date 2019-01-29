@@ -3,6 +3,9 @@
  * @param {number} time 
  */
 exports.decode = time => {
+  const milliseconds = time % 1000;
+  time = (time-milliseconds);
+  
   const second = time % 60;
   time = (time - second) / 60;
 
@@ -20,7 +23,8 @@ exports.decode = time => {
 
   const year = time + 2000;
 
-  return new Date(year, month, day, hour, minute, second);
+  //return new Date(year, month, day, hour, minute, second,milliseconds);
+  return new Date(year, month, day, hour, minute, second,milliseconds).getTime();
 };
 
 /**
