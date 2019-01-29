@@ -35,7 +35,7 @@ my custom parser which till now giving uid,inOutStatus and timestamp
 */
 module.exports.myParse = attdata => ({
   uid: attdata.readUInt16LE(2),
-  timestamp: timeParser.decode(attdata.readUInt32LE(6)).toString(),
+  timestamp: timeParser.decode(attdata.readUInt32LE(6)),
   inOutStatus: attdata.readUInt8(11),
 });
 
