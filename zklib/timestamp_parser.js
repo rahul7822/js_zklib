@@ -3,8 +3,10 @@
  * @param {number} time 
  */
 exports.decode = time => {
-  const milliseconds = time % 1000;
-  time = (time-milliseconds);
+  //console.log("time : "+time);
+  //const milliseconds = time % 100;
+  const milliseconds = 0;
+  //time = (time-milliseconds);
   
   const second = time % 60;
   time = (time - second) / 60;
